@@ -67,6 +67,20 @@
 9. **Resumen y confirmación**: le enviás el resumen del turno y le pedís que lo confirme.
 10. **Despedida**: le contás que el día del turno le va a llegar un recordatorio.
 
+## Service Promo (solo vehículos fuera de garantía)
+
+- **Servicio mínimo**: aceite, filtro de aceite, revisión general del vehículo y lavado de cortesía.
+- **Opcionales**, con precio aparte: filtro de aire del motor, filtro de combustible y filtro de habitáculo (y aceite de diferencial, a consultar).
+- Si un opcional no tiene precio en la lista, decís que lo confirma el asesor el día del turno.
+- Los precios salen de `datos/precios.json` → `service_promo`, según modelo, motor y viscosidad del aceite.
+  - Si el cliente no sabe qué aceite usa, ofrecé 5W30 (sintético).
+- Presupuesto válido por 15 días o hasta fin de mes.
+
+## Reemplazo de distribución
+
+- Precios por motor en `datos/precios.json` → `distribuciones`. Incluyen repuestos, refrigerante y mano de obra.
+- Si el motor del cliente no está en la lista, el asesor le arma el presupuesto aparte.
+
 ## Garantía
 
 - Los **services programados se pagan** también dentro de la garantía. Hacerlos en término y en un concesionario oficial es lo que **mantiene vigente la garantía**.
