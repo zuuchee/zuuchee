@@ -28,3 +28,10 @@ planilla no se exportan. La carpeta `anzia/datos/` y las planillas están en
 | `Detalle_Servicios` (Excel mensual) | Services oficiales Ford por modelo y km, mano de obra, lavado y combos del mes |
 | `LISTA DE PRECIOS POSVENTA ANZER` (Google Sheets), pestañas `SERVIS PROMO` y `DISTRIBUCIONES` | Service Promo y reemplazo de distribución |
 | `Catalogo de Accesorios Genuinos 2026 Anzer` (Google Sheets) | Accesorios por modelo, para ofrecer cuando el cliente pregunte |
+
+## Número de WhatsApp
+
+El bot atiende en el número del taller, que usa **WhatsApp Business**. Ese
+número se conecta a la API oficial de WhatsApp Business (Cloud API) en modo
+coexistencia: el equipo sigue viendo y respondiendo los chats desde la app
+mientras Anzia atiende automáticamente.

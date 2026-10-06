@@ -151,7 +151,7 @@ def distribuciones(wb, precios):
     ws = wb["DISTRIBUCIONES"]
     hora = ws["G19"].value
     litro_aceite = wb["SERVIS PROMO "]["C25"].value  # 5W30
-    reten_ciguenal = ws["D25"].value  # la planilla lo suma en todos los motores
+    reten_ciguenal = ws["D25"].value  # lo llevan todos los motores
     motores = []
     for f in range(2, 15):
         nombre = ws[f"B{f}"].value
@@ -160,7 +160,8 @@ def distribuciones(wb, precios):
         litros = ws[f"C{f}"].value
         repuestos = (
             (litros * litro_aceite if isinstance(litros, (int, float)) else 0)
-            + sum(precio_pieza(precios, ws[f"{col}{f}"].value) for col in "EFGIJK")
+            # correa, tensor, bomba de agua, junta de bomba, correa poli V, correa bomba de aceite, filtro
+            + sum(precio_pieza(precios, ws[f"{col}{f}"].value) for col in "EFGHIJK")
             + reten_ciguenal
             + precio_pieza(precios, ws[f"M{f}"].value) * 2  # 2 bidones de refrigerante
         )
