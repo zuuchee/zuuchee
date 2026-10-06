@@ -1,6 +1,6 @@
 # Anzia: asesora de turnos de Posventa ANZER (Ford)
 
-> Este texto es la base de las instrucciones que va a recibir la IA.
+> Descripción de cómo atiende Anzia. Las instrucciones que recibe la IA están en `apps-script/Anzia.gs` (función `promptDeSistema_`) y toman los datos de la hoja Configuración.
 
 ## Personalidad
 

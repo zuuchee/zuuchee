@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta charset="utf-8">
+<style>
+  :root { --azul: #1b2a52; --azul-claro: #e8edf7; --verde: #1e7d4f; --rojo: #b3261e; --ambar: #a86400; --gris: #5f6368; --borde: #dadce0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Google Sans", Roboto, Arial, sans-serif; font-size: 14px; color: #202124; background: #f8f9fb; }
+  nav { display: flex; gap: 4px; padding: 8px 12px 0; background: var(--azul); }
+  nav button { background: transparent; color: #cfd8ee; border: 0; padding: 10px 14px; font-size: 14px; cursor: pointer; border-radius: 8px 8px 0 0; }
+  nav button.activo { background: #f8f9fb; color: var(--azul); font-weight: 600; }
+  section { display: none; padding: 16px 20px; }
+  section.activo { display: block; }
+  h2 { margin: 0 0 12px; font-size: 18px; color: var(--azul); }
+  .tarjetas { display: flex; gap: 12px; margin-bottom: 16px; }
+  .tarjeta { flex: 1; background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 14px; }
+  .tarjeta .num { font-size: 28px; font-weight: 700; color: var(--azul); }
+  .tarjeta .etq { color: var(--gris); }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+  th { background: var(--azul-claro); font-weight: 600; font-size: 13px; }
+  tr.detalle td { background: #fafbfd; color: var(--gris); font-size: 13px; white-space: pre-line; }
+  .estado { padding: 2px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
+  .Pendiente { background: #fff3d6; color: var(--ambar); }
+  .Confirmado { background: #ddf3e6; color: var(--verde); }
+  .Completado { background: #e8eaed; color: var(--gris); }
+  .Cancelado { background: #fde3e1; color: var(--rojo); }
+  button.b { border: 1px solid var(--borde); background: #fff; border-radius: 6px; padding: 5px 9px; cursor: pointer; font-size: 13px; margin: 1px; }
+  button.primario { background: var(--azul); color: #fff; border-color: var(--azul); }
+  button.b:hover { filter: brightness(0.95); }
+  .filtros { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  input, select, textarea { font: inherit; padding: 6px 8px; border: 1px solid var(--borde); border-radius: 6px; }
+  .chat { display: flex; gap: 12px; height: 620px; }
+  .lista { width: 300px; overflow: auto; background: #fff; border: 1px solid var(--borde); border-radius: 10px; }
+  .lista div { padding: 10px; border-bottom: 1px solid #eef0f3; cursor: pointer; }
+  .lista div.sel { background: var(--azul-claro); }
+  .lista small { color: var(--gris); }
+  .mensajes { flex: 1; display: flex; flex-direction: column; background: #efeae2; border-radius: 10px; border: 1px solid var(--borde); }
+  .burbujas { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .burbuja { max-width: 75%; padding: 7px 10px; border-radius: 8px; background: #fff; white-space: pre-wrap; }
+  .burbuja.Anzia, .burbuja.Asesor { align-self: flex-end; background: #d9fdd3; }
+  .burbuja small { display: block; color: var(--gris); font-size: 11px; margin-top: 2px; }
+  .enviar { display: flex; gap: 8px; padding: 8px; background: #f0f2f5; border-radius: 0 0 10px 10px; }
+  .enviar textarea { flex: 1; height: 44px; resize: none; }
+  .aviso { padding: 10px 12px; border-radius: 8px; background: var(--azul-claro); margin-bottom: 12px; }
+  .ok { color: var(--verde); font-weight: 600; }
+  .falta { color: var(--rojo); font-weight: 600; }
+  .campo { display: grid; grid-template-columns: 230px 1fr 90px; gap: 8px; align-items: center; margin-bottom: 8px; }
+  code { background: #eef0f3; padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #202124; color: #fff; padding: 10px 16px; border-radius: 8px; display: none; }
+</style>
+</head>
+<body>
+<nav>
+  <button data-tab="inicio" class="activo">Inicio</button>
+  <button data-tab="turnos">Turnos</button>
+  <button data-tab="chats">Conversaciones</button>
+  <button data-tab="probar">Probar a Anzia</button>
+  <button data-tab="precios">Precios</button>
+  <button data-tab="config">Configuración</button>
+</nav>
+
+<section id="inicio" class="activo">
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="num" id="nHoy">–</div><div class="etq">Turnos hoy</div></div>
+    <div class="tarjeta"><div class="num" id="nPend">–</div><div class="etq">Pendientes de confirmar</div></div>
+    <div class="tarjeta"><div class="num" id="nProx">–</div><div class="etq">Turnos próximos</div></div>
+    <div class="tarjeta"><div class="num" id="nAsesor">–</div><div class="etq">Chats esperando a un asesor</div></div>
+  </div>
+  <h2>Turnos de hoy</h2>
+  <div id="tablaHoy"></div>
+</section>
+
+<section id="turnos">
+  <div class="filtros">
+    Desde <input type="date" id="fDesde"> hasta <input type="date" id="fHasta">
+    <select id="fEstado"><option value="">Todos los estados</option><option>Pendiente de confirmar</option><option>Confirmado</option><option>Completado</option><option>Cancelado</option></select>
+    <button class="b primario" onclick="cargarTurnos()">Buscar</button>
+  </div>
+  <div id="tablaTurnos"></div>
+</section>
+
+<section id="chats">
+  <div class="chat">
+    <div class="lista" id="listaChats"></div>
+    <div class="mensajes">
+      <div class="filtros" style="padding:8px;margin:0;background:#f0f2f5;border-radius:10px 10px 0 0">
+        <b id="chatTitulo">Elegí una conversación</b>
+        <span style="flex:1"></span>
+        <button class="b" id="btnModo" onclick="cambiarModo()" disabled>–</button>
+      </div>
+      <div class="burbujas" id="burbujas"></div>
+      <div class="enviar">
+        <textarea id="txtEnviar" placeholder="Escribí un mensaje como asesor (solo dentro de las 24 h desde el último mensaje del cliente)"></textarea>
+        <button class="b primario" onclick="enviarComoAsesor()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="probar">
+  <div class="aviso">Chateá con Anzia como si fueras un cliente. No se envía nada por WhatsApp ni se crean eventos en el calendario. Los turnos de prueba quedan en la hoja Turnos marcados con [PRUEBA].</div>
+  <div class="chat" style="height:560px">
+    <div class="mensajes">
+      <div class="burbujas" id="burbujasPrueba"></div>
+      <div class="enviar">
+        <textarea id="txtPrueba" placeholder="Escribí como cliente, por ejemplo: Hola, quiero sacar turno para el service de mi Ranger"></textarea>
+        <button class="b primario" onclick="probar(false)">Enviar</button>
+        <button class="b" onclick="probar(true)">Empezar de nuevo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="precios">
+  <h2>Actualizar precios</h2>
+  <p id="estadoPrecios"></p>
+  <p><button class="b primario" onclick="actualizarPrecios('posventa')">Actualizar Service Promo y Distribuciones</button>
+    Lee la planilla LISTA DE PRECIOS POSVENTA y recalcula con la columna D de la Lista de Precios FORD.</p>
+  <p><b>Services oficiales y combos del mes:</b> elegí el Excel mensual de Ford ("Detalle Servicios") desde tu computadora.<br>
+    <input type="file" id="excelFord" accept=".xlsx,.xls"> <button class="b primario" onclick="cargarExcelFord()">Cargar precios del Excel</button></p>
+  <div class="aviso">También podés editar cualquier precio a mano en las hojas <b>Precios Oficiales</b>, <b>Service Promo</b>, <b>Distribuciones</b>, <b>Adicionales</b> y <b>Combos del Mes</b>. Anzia usa siempre lo que haya en esas hojas.</div>
+</section>
+
+<section id="config">
+  <h2>Estado de la instalación</h2>
+  <div id="estado"></div>
+  <h2 style="margin-top:20px">Claves privadas</h2>
+  <div class="aviso">Se guardan ocultas en el proyecto, no en la planilla. Dejá el campo vacío si no querés cambiarla.</div>
+  <div class="campo"><label>API key de Anthropic</label><input type="password" id="s_ANTHROPIC_API_KEY"><button class="b" onclick="guardar('ANTHROPIC_API_KEY')">Guardar</button></div>
+  <div class="campo"><label>Token de WhatsApp (permanente)</label><input type="password" id="s_WHATSAPP_TOKEN"><button class="b" onclick="guardar('WHATSAPP_TOKEN')">Guardar</button></div>
+  <div class="campo"><label>ID del número de WhatsApp</label><input id="s_WHATSAPP_PHONE_ID"><button class="b" onclick="guardar('WHATSAPP_PHONE_ID')">Guardar</button></div>
+  <div class="aviso">El resto de la configuración (horarios, turnos por horario, datos bancarios, email de avisos…) se edita en la hoja <b>Configuración</b>.</div>
+</section>
+
+<div id="toast"></div>
+
+<script>
+  let chatActual = null, modoActual = 'bot';
+
+  document.querySelectorAll('nav button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('nav button, section').forEach(function (x) { x.classList.remove('activo'); });
+      b.classList.add('activo');
+      document.getElementById(b.dataset.tab).classList.add('activo');
+      const cargar = { inicio: cargarInicio, turnos: cargarTurnos, chats: cargarChats, precios: cargarEstado, config: cargarEstado }[b.dataset.tab];
+      if (cargar) cargar();
+    };
+  });
+
+  function llamar(funcion) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (ok, mal) {
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) { aviso('⚠️ ' + e.message); mal(e); })[funcion].apply(null, args);
+    });
+  }
+
+  function aviso(texto) {
+    const t = document.getElementById('toast');
+    t.textContent = texto;
+    t.style.display = 'block';
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.style.display = 'none'; }, 4000);
+  }
+
+  function esc(s) {
+    return String(s === undefined || s === null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  }
+
+  function pesos(n) {
+    return n === '' || isNaN(Number(n)) ? esc(n) : '$' + Math.round(Number(n)).toLocaleString('es-AR');
+  }
+
+  function tablaTurnos(turnos) {
+    if (!turnos.length) return '<p>No hay turnos.</p>';
+    let h = '<table><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Vehículo</th><th>Servicio</th><th>Monto</th><th>Estado</th><th>Acciones</th></tr>';
+    turnos.forEach(function (t) {
+      h += '<tr><td>' + esc(t.Fecha.split('-').reverse().join('/')) + '</td><td>' + esc(t.Hora) + '</td><td>' + esc(t.Cliente) + '<br><small>' + esc(t['Teléfono']) + '</small></td>' +
+        '<td>' + esc(t['Vehículo']) + '<br><small>' + esc(t.Patente) + ' – ' + esc(t.Km) + ' km</small></td><td>' + esc(t.Servicio) + '</td><td>' + pesos(t['Monto estimado']) + '</td>' +
+        '<td><span class="estado ' + esc(String(t.Estado).split(' ')[0]) + '">' + esc(t.Estado) + '</span></td><td>' +
+        '<button class="b" onclick="estado(\'' + t.ID + '\',\'Confirmado\')">✅ Confirmar</button>' +
+        '<button class="b" onclick="estado(\'' + t.ID + '\',\'Completado\')">🏁 Completado</button>' +
+        '<button class="b" onclick="reprogramar(\'' + t.ID + '\')">📅 Mover</button>' +
+        '<button class="b" onclick="recordar(\'' + t.ID + '\')">🔔 Recordar</button>' +
+        '<button class="b" onclick="estado(\'' + t.ID + '\',\'Cancelado\')">✖ Cancelar</button></td></tr>' +
+        '<tr class="detalle"><td colspan="8">🔩 Tuerca: ' + esc(t['Tuerca de seguridad']) + '   🚕 ' + esc(t['Espera / Taxi']) + '   🔄 Rotación: ' + esc(t['Rotación']) +
+        '   ➕ ' + esc(t.Adicionales) + '   💳 ' + esc(t['Forma de pago']) + '   🛡️ Garantía: ' + esc(t['En garantía']) +
+        (t.Comentarios ? '\n💬 ' + esc(t.Comentarios) : '') + (t['Recordatorio enviado'] ? '\n🔔 Recordatorio enviado: ' + esc(t['Recordatorio enviado']) : '') + '</td></tr>';
+    });
+    return h + '</table>';
+  }
+
+  function cargarInicio() {
+    llamar('panelResumen').then(function (r) {
+      document.getElementById('nHoy').textContent = r.turnosHoy.length;
+      document.getElementById('nPend').textContent = r.pendientes;
+      document.getElementById('nProx').textContent = r.proximos;
+      document.getElementById('nAsesor').textContent = r.conAsesor;
+      document.getElementById('tablaHoy').innerHTML = tablaTurnos(r.turnosHoy);
+    });
+  }
+
+  function cargarTurnos() {
+    const d = document.getElementById('fDesde');
+    if (!d.value) d.value = new Date().toISOString().slice(0, 10);
+    llamar('panelTurnos', d.value, document.getElementById('fHasta').value, document.getElementById('fEstado').value).then(function (t) {
+      document.getElementById('tablaTurnos').innerHTML = tablaTurnos(t);
+    });
+  }
+
+  function refrescar() {
+    cargarInicio();
+    if (document.getElementById('turnos').classList.contains('activo')) cargarTurnos();
+  }
+
+  function estado(id, nuevo) {
+    const avisar = (nuevo === 'Confirmado' || nuevo === 'Cancelado') && confirm('¿Le aviso al cliente por WhatsApp?');
+    llamar('panelCambiarEstado', id, nuevo, avisar).then(function (m) { aviso(m); refrescar(); });
+  }
+
+  function reprogramar(id) {
+    const fecha = prompt('Nueva fecha (AAAA-MM-DD):');
+    if (!fecha) return;
+    const hora = prompt('Nueva hora (HH:MM):');
+    if (!hora) return;
+    llamar('panelReprogramar', id, fecha, hora).then(function (m) { aviso(m); refrescar(); });
+  }
+
+  function recordar(id) {
+    llamar('panelEnviarRecordatorio', id).then(function (m) { aviso(m); refrescar(); });
+  }
+
+  function cargarChats() {
+    llamar('panelConversaciones').then(function (lista) {
+      document.getElementById('listaChats').innerHTML = lista.filter(function (c) { return c.telefono !== 'PRUEBA'; }).map(function (c) {
+        return '<div data-tel="' + esc(c.telefono) + '" data-modo="' + esc(c.modo) + '" class="' + (c.telefono === chatActual ? 'sel' : '') + '">' +
+          (c.modo === 'asesor' ? '🙋 ' : '🤖 ') + '<b>' + esc(c.nombre || c.telefono) + '</b><br><small>' + esc(c.telefono) + ' · ' + esc(c.ultimo) + '</small></div>';
+      }).join('') || '<div>Todavía no hay conversaciones.</div>';
+      document.querySelectorAll('#listaChats div[data-tel]').forEach(function (d) {
+        d.onclick = function () { abrirChat(d.dataset.tel, d.dataset.modo, d.querySelector('b').textContent); };
+      });
+    });
+  }
+
+  function abrirChat(tel, modo, nombre) {
+    chatActual = tel; modoActual = modo;
+    document.getElementById('chatTitulo').textContent = nombre + ' (' + tel + ')';
+    const b = document.getElementById('btnModo');
+    b.disabled = false;
+    b.textContent = modo === 'asesor' ? '🤖 Volver a activar a Anzia' : '🙋 Responder yo (pausar a Anzia)';
+    llamar('panelMensajes', tel).then(function (msgs) {
+      const c = document.getElementById('burbujas');
+      c.innerHTML = msgs.map(function (m) { return '<div class="burbuja ' + esc(m.quien) + '">' + esc(m.texto) + '<small>' + esc(m.quien) + ' · ' + esc(m.fecha) + '</small></div>'; }).join('');
+      c.scrollTop = c.scrollHeight;
+    });
+    cargarChats();
+  }
+
+  function cambiarModo() {
+    const nuevo = modoActual === 'asesor' ? 'bot' : 'asesor';
+    llamar('panelCambiarModo', chatActual, nuevo).then(function (m) {
+      aviso(m);
+      abrirChat(chatActual, nuevo, document.getElementById('chatTitulo').textContent.split(' (')[0]);
+    });
+  }
+
+  function enviarComoAsesor() {
+    const t = document.getElementById('txtEnviar');
+    if (!chatActual || !t.value.trim()) return;
+    llamar('panelEnviarMensaje', chatActual, t.value.trim()).then(function () {
+      t.value = '';
+      abrirChat(chatActual, modoActual, document.getElementById('chatTitulo').textContent.split(' (')[0]);
+    });
+  }
+
+  function burbujaPrueba(texto, quien) {
+    const c = document.getElementById('burbujasPrueba');
+    c.insertAdjacentHTML('beforeend', '<div class="burbuja ' + quien + '">' + esc(texto) + '</div>');
+    c.scrollTop = c.scrollHeight;
+  }
+
+  function probar(reiniciar) {
+    const t = document.getElementById('txtPrueba');
+    if (reiniciar) {
+      document.getElementById('burbujasPrueba').innerHTML = '';
+      if (!t.value.trim()) { llamar('panelProbar', 'Hola', true).then(function (r) { burbujaPrueba('Hola', 'Cliente'); burbujaPrueba(r, 'Anzia'); }); return; }
+    }
+    const texto = t.value.trim();
+    if (!texto) return;
+    t.value = '';
+    burbujaPrueba(texto, 'Cliente');
+    burbujaPrueba('escribiendo…', 'Anzia escribiendo');
+    llamar('panelProbar', texto, reiniciar).then(function (r) {
+      document.querySelectorAll('.escribiendo').forEach(function (e) { e.remove(); });
+      burbujaPrueba(r, 'Anzia');
+    }, function () { document.querySelectorAll('.escribiendo').forEach(function (e) { e.remove(); }); });
+  }
+
+  function actualizarPrecios(cual) {
+    aviso('Actualizando precios… puede tardar un minuto');
+    llamar('panelActualizarPrecios', cual).then(function (m) { aviso(m); cargarEstado(); });
+  }
+
+  /** Lee las hojas de precios del Excel de Ford desde la columna A, para que coincidan con la planilla original. */
+  function hojasDelExcel(libro) {
+    const hojas = {};
+    ['New Portfolio', 'Old Portfolio', 'Precios Vigentes Electricos', 'Oport Mecanica Lig'].forEach(function (nombre) {
+      const ws = libro.Sheets[nombre];
+      if (!ws || !ws['!ref']) return;
+      const rango = XLSX.utils.decode_range(ws['!ref']);
+      rango.s = { r: 0, c: 0 };
+      hojas[nombre] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true, range: XLSX.utils.encode_range(rango) });
+    });
+    return hojas;
+  }
+
+  function cargarExcelFord() {
+    const archivo = document.getElementById('excelFord').files[0];
+    if (!archivo) { aviso('Elegí primero el Excel de Ford'); return; }
+    aviso('Leyendo el Excel…');
+    archivo.arrayBuffer().then(function (buf) {
+      const hojas = hojasDelExcel(XLSX.read(buf, { type: 'array' }));
+      return llamar('panelCargarExcelOficiales', hojas);
+    }).then(function (m) { aviso(m); cargarEstado(); });
+  }
+
+  function cargarEstado() {
+    llamar('panelEstado').then(function (e) {
+      const nombres = { ANTHROPIC_API_KEY: 'API key de Anthropic', WHATSAPP_TOKEN: 'Token de WhatsApp', WHATSAPP_PHONE_ID: 'ID del número de WhatsApp', CLAVE_RELAY: 'Clave del relay' };
+      let h = '<table>';
+      Object.keys(nombres).forEach(function (k) { h += '<tr><td>' + nombres[k] + '</td><td>' + (e.secretos[k] ? '<span class="ok">✔ Cargada</span>' : '<span class="falta">✖ Falta</span>') + '</td></tr>'; });
+      h += '<tr><td>Recordatorios diarios</td><td>' + (e.recordatorios ? '<span class="ok">✔ Programados</span>' : '<span class="falta">✖ Ejecutá 🤖 Anzia → Instalar / reparar</span>') + '</td></tr>';
+      h += '<tr><td>URL de la aplicación web</td><td>' + (e.urlWebApp ? '<code>' + esc(e.urlWebApp) + '</code>' : '<span class="falta">✖ Falta implementar (Implementar → Nueva implementación → Aplicación web)</span>') + '</td></tr>';
+      h += '<tr><td>Clave del relay (CLAVE_RELAY en Cloudflare)</td><td><code>' + esc(e.claveRelay) + '</code></td></tr>';
+      h += '</table>';
+      document.getElementById('estado').innerHTML = h;
+      document.getElementById('estadoPrecios').textContent = 'Última actualización: ' + (e.precios || 'nunca');
+    });
+  }
+
+  function guardar(nombre) {
+    const i = document.getElementById('s_' + nombre);
+    if (!i.value.trim()) return;
+    llamar('panelGuardarSecreto', nombre, i.value).then(function (m) { i.value = ''; aviso(m); cargarEstado(); });
+  }
+
+  cargarInicio();
+</script>
+</body>
+</html>

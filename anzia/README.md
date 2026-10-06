@@ -7,8 +7,14 @@ una agenda virtual y le recuerda el turno al cliente el mismo día.
 
 | Archivo | Qué es |
 |---|---|
-| `prompt_anzia.md` | Personalidad, flujo de conversación y plantilla de recordatorio |
-| `herramientas/extraer_precios.py` | Convierte la planilla mensual de precios en el JSON que usa el bot |
+| `GUIA_INSTALACION.md` | **Empezá por acá**: instalación paso a paso y uso diario |
+| `apps-script/Anzia.gs` | El bot: webhook de WhatsApp, conversación con Claude y herramientas (precios, agenda, turnos) |
+| `apps-script/Panel.gs` | Panel de control: turnos, recordatorios diarios, carga de precios |
+| `apps-script/Panel.html` | La ventana del panel que se abre desde la planilla |
+| `apps-script/appsscript.json` | Manifiesto del proyecto de Apps Script |
+| `relay/worker.js` | Relay de Cloudflare entre Meta y Apps Script |
+| `prompt_anzia.md` | Descripción de la personalidad y del flujo (la versión que usa el bot está en `Anzia.gs`) |
+| `herramientas/extraer_precios.py` | Versión en Python del cálculo de precios, para revisar las planillas desde la computadora |
 
 ## Actualizar precios cada mes
 
