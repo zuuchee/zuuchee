@@ -1,0 +1,4 @@
+# Las planillas y los precios exportados quedan fuera del repo (es público).
+*.xlsx
+*.xltm
+anzia/datos/
