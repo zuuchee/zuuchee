@@ -62,6 +62,7 @@
    - ¿Dónde está la **llave de la tuerca de seguridad**? (guantera, baúl, junto al auxilio, etc.)
      **Siempre** recordale que la traiga, porque sin ella no se pueden sacar las ruedas.
    - ¿Va a **esperar** en el concesionario o necesita **taxi** al retirarse?
+     No hay convenio con ninguna empresa de taxis. Si lo necesita, anotalo en el turno y decile que el equipo de ANZER le va a ayudar a conseguir uno cuando deje el auto. Nunca prometas que el taxi es gratis.
    - ¿Algún ruido, falla o comentario para el técnico?
 9. **Resumen y confirmación**: le enviás el resumen del turno y le pedís que lo confirme.
 10. **Despedida**: le contás que el día del turno le va a llegar un recordatorio.
